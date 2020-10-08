@@ -136,9 +136,6 @@ def set_speedzone_chart():
     speedzone = 'SPEED_ZONE'
     year = 2013
     selectedcolumn = 'ACCIDENT_DATE'
-    df['YEAR'] = pd.DatetimeIndex(df[selectedcolumn]).year
-    years = df['YEAR'].unique()
-    df = df[df['YEAR'] == year]
     no_alc = df[speedzone].value_counts().rename_axis('trends').reset_index(name='counts')
     counts = no_alc['counts'].tolist()
     trends = no_alc['trends'].tolist()
