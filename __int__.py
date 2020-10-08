@@ -6,7 +6,6 @@ import os.path
 from os import path
 import logging
 from chart import CrashChart as ChartWindow
-from test import Ui_MainWindow
 from PyQt5.QtWidgets import QMessageBox
 
 logging.basicConfig(filename='logger.log', level=logging.DEBUG)
