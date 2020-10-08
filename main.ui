@@ -127,10 +127,20 @@
      </item>
      <item>
       <widget class="QDateEdit" name="enddate">
+       <property name="dateTime">
+        <datetime>
+         <hour>0</hour>
+         <minute>0</minute>
+         <second>0</second>
+         <year>2013</year>
+         <month>2</month>
+         <day>1</day>
+        </datetime>
+       </property>
        <property name="date">
         <date>
-         <year>2017</year>
-         <month>1</month>
+         <year>2013</year>
+         <month>2</month>
          <day>1</day>
         </date>
        </property>
@@ -230,7 +240,7 @@
    <widget class="QPushButton" name="accidentchart">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>460</x>
       <y>60</y>
       <width>75</width>
       <height>23</height>
@@ -243,27 +253,27 @@
    <widget class="QPushButton" name="otherinsightbtn">
     <property name="geometry">
      <rect>
-      <x>700</x>
+      <x>750</x>
       <y>60</y>
       <width>75</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Other Insight</string>
+     <string>Speed Zone</string>
     </property>
    </widget>
    <widget class="QPushButton" name="impactbtn">
     <property name="geometry">
      <rect>
-      <x>600</x>
+      <x>550</x>
       <y>60</y>
       <width>91</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Alcohol impact</string>
+     <string>Alcohol Impact</string>
     </property>
    </widget>
    <widget class="QPushButton" name="datesearchbtn">
@@ -277,6 +287,19 @@
     </property>
     <property name="text">
      <string>Search</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="alcoholCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>60</y>
+      <width>81</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Alcohol time</string>
     </property>
    </widget>
   </widget>

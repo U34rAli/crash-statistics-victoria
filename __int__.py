@@ -88,21 +88,68 @@ def set_date_between_dates():
     data = get_data_between_dates()
     set_datatable(data)
 
-def set_accidentchart():
-    data = get_data_between_dates()
+def show_graph(x_axis, y_axis, title, x_label):
     data = {
-        "data": data,
-        "title": 'Accident per hour (Average)',
-        "x_label": 'Dates'
+        "x_axis": x_axis,
+        "y_axis": y_axis,
+        "title": title,
+        "x_label": x_label
     }
     chartw = ChartWindow(DataAnalysisTool, data)
     chartw.show()
 
+def set_accidentchart():
+    df = get_data_between_dates()
+    # if df != None:
+    title = 'Accident per hour (Average)'
+    x_label = 'Dates'
+    newdf = get_data_between_dates()
+    uni = newdf['ACCIDENT_DATE'].value_counts().rename_axis('days').reset_index(name='counts')
+    uni = uni.sort_values(by='days')
+    dates = uni['days']
+    dates = dates.apply(lambda x: x.strftime('%Y-%m-%d'))
+    dates = dates.tolist()
+    counts = (uni['counts']/24).tolist()
+    show_graph(dates, counts, title, x_label)
+    
+
+def set_alcohol_impact_chart():
+    df = get_data_between_dates()
+    # if df != None:
+    x_label = 'Trends'
+    alc_time = 'yes' if ui.alcoholCheckBox.isChecked() else 'no'
+    title = 'Alcohol Impact and Alcohol time ' + alc_time.upper() 
+    selectedcolumn = 'LIGHT_CONDITION'
+    df['ALCOHOLTIME'] = df['ALCOHOLTIME'].str.lower()
+    df = df[df['ALCOHOLTIME'] == alc_time]
+    no_alc = df[selectedcolumn].value_counts().rename_axis('trends').reset_index(name='counts')
+    counts = no_alc['counts'].tolist()
+    trends = no_alc['trends'].tolist()
+    show_graph(trends, counts, title, x_label)
+
+
+def set_speedzone_chart():
+    df = get_data_between_dates()
+    # if df != None:
+    title = "Accidents per speed zone"
+    x_label = "Speed Limits"
+    speedzone = 'SPEED_ZONE'
+    year = 2013
+    selectedcolumn = 'ACCIDENT_DATE'
+    df['YEAR'] = pd.DatetimeIndex(df[selectedcolumn]).year
+    years = df['YEAR'].unique()
+    df = df[df['YEAR'] == year]
+    no_alc = df[speedzone].value_counts().rename_axis('trends').reset_index(name='counts')
+    counts = no_alc['counts'].tolist()
+    trends = no_alc['trends'].tolist()
+    show_graph(trends, counts, title, x_label)
 
 ui.loadbtn.clicked.connect(load_dataset)
 ui.datesearchbtn.clicked.connect(set_date_between_dates)
 ui.searchbtn.clicked.connect(set_keyword_date)
 ui.accidentchart.clicked.connect(set_accidentchart)
+ui.impactbtn.clicked.connect(set_alcohol_impact_chart)
+ui.otherinsightbtn.clicked.connect(set_speedzone_chart)
 
 
 if __name__ == "__main__":
