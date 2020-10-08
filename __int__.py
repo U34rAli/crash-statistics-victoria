@@ -5,8 +5,9 @@ from main import Ui_DataAnalysisTool
 import os.path
 from os import path
 import logging
-from chart import MainWindow as ChartWindow
+from chart import CrashChart as ChartWindow
 from test import Ui_MainWindow
+from PyQt5.QtWidgets import QMessageBox
 
 logging.basicConfig(filename='logger.log', level=logging.DEBUG)
 app = QtWidgets.QApplication(sys.argv)
@@ -52,6 +53,7 @@ def file_path_decorator(function):
             return function(*args,**kwargs)
         else:
             logging.error("Path not exist")
+            QMessageBox.about(DataAnalysisTool, "Alert", "File path not found")
             return None
     return wrapper
 
@@ -87,13 +89,14 @@ def set_date_between_dates():
     set_datatable(data)
 
 def set_accidentchart():
-    # pass
-    # data = get_data_between_dates()
-    # chart_window = ChartWindow()
-    # chart_window.show()
-    ui = Ui_MainWindow()
-    ui.setupUi(DataAnalysisTool)
-    DataAnalysisTool.show()
+    data = get_data_between_dates()
+    data = {
+        "data": data,
+        "title": 'Accident per hour (Average)',
+        "x_label": 'Dates'
+    }
+    chartw = ChartWindow(DataAnalysisTool, data)
+    chartw.show()
 
 
 ui.loadbtn.clicked.connect(load_dataset)
