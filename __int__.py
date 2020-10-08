@@ -7,6 +7,7 @@ from os import path
 import logging
 from chart import CrashChart as ChartWindow
 from PyQt5.QtWidgets import QMessageBox
+import re
 
 logging.basicConfig(filename='logger.log', level=logging.DEBUG)
 app = QtWidgets.QApplication(sys.argv)
@@ -14,7 +15,9 @@ DataAnalysisTool = QtWidgets.QMainWindow()
 ui = Ui_DataAnalysisTool()
 ui.setupUi(DataAnalysisTool)
 
+ALLOWED_EXTENSIONS = {'csv'}
 
+# This classed will be used by PyQT chart to display chart from data frame
 class PandasModel(QtCore.QAbstractTableModel):
     """
     Class to populate a table view with a pandas dataframe
@@ -41,20 +44,34 @@ class PandasModel(QtCore.QAbstractTableModel):
             return self._data.columns[col]
         return None
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def file_path_decorator(function):
-    def wrapper(*args,**kwargs):
+    def wrapper(*args, **kwargs):
+        message = "File path not found"
         filename = ui.filename.text()
         if path.exists(filename):
-            kwargs['data'] = pd.read_csv(filename)
-            kwargs['filename'] = filename
-            logging.info("file Loaded")
-            return function(*args,**kwargs)
-        else:
-            logging.error("Path not exist")
-            QMessageBox.about(DataAnalysisTool, "Alert", "File path not found")
-            return None
+            if allowed_file(filename):
+                if re.findall("^[a-zA-Z]", filename):
+                    df = pd.read_csv(filename)
+                    if len(df) > 0:
+                        kwargs['data'] = df
+                        kwargs['filename'] = filename
+                        logging.info("file Loaded")
+                        return function(*args, **kwargs)
+                    else:
+                        message = "File must contains at least one row!"
+                else:
+                    message = "File name must start with a character!"
+            else:
+                message = "Not a CSV file!"
+        logging.error("Path not exist!")
+        QMessageBox.about(DataAnalysisTool, "Alert", message)
+        return None
     return wrapper
+
 
 def set_datatable(data):
     model = PandasModel(data)
@@ -67,13 +84,15 @@ def load_dataset(*args, **kwargs):
     data = kwargs['data']
     set_datatable(data.head())
 
+
 @file_path_decorator
 def get_data_between_dates(*args, **kwargs):
     df = kwargs['data']
     start_date = ui.startdate.date().toString(QtCore.Qt.ISODate)
     end_date = ui.enddate.date().toString(QtCore.Qt.ISODate)
     df['ACCIDENT_DATE'] = pd.to_datetime(df['ACCIDENT_DATE'])
-    mask = (df['ACCIDENT_DATE'] > start_date) & (df['ACCIDENT_DATE'] <= end_date)
+    mask = (df['ACCIDENT_DATE'] > start_date) & (
+        df['ACCIDENT_DATE'] <= end_date)
     return df.loc[mask]
 
 
@@ -83,9 +102,11 @@ def set_keyword_date():
     df = df[df['DCA_CODE'].str.contains(search, case=False)]
     set_datatable(df)
 
+
 def set_date_between_dates():
     data = get_data_between_dates()
     set_datatable(data)
+
 
 def show_graph(x_axis, y_axis, title, x_label):
     data = {
@@ -97,31 +118,33 @@ def show_graph(x_axis, y_axis, title, x_label):
     chartw = ChartWindow(DataAnalysisTool, data)
     chartw.show()
 
+
 def set_accidentchart():
-    df = get_data_between_dates()
+    newdf = get_data_between_dates()
     # if df != None:
     title = 'Accident per hour (Average)'
     x_label = 'Dates'
-    newdf = get_data_between_dates()
-    uni = newdf['ACCIDENT_DATE'].value_counts().rename_axis('days').reset_index(name='counts')
+    uni = newdf['ACCIDENT_DATE'].value_counts().rename_axis(
+        'days').reset_index(name='counts')
     uni = uni.sort_values(by='days')
     dates = uni['days']
     dates = dates.apply(lambda x: x.strftime('%Y-%m-%d'))
     dates = dates.tolist()
     counts = (uni['counts']/24).tolist()
     show_graph(dates, counts, title, x_label)
-    
+
 
 def set_alcohol_impact_chart():
     df = get_data_between_dates()
     # if df != None:
     x_label = 'Trends'
     alc_time = 'yes' if ui.alcoholCheckBox.isChecked() else 'no'
-    title = 'Alcohol Impact and Alcohol time ' + alc_time.upper() 
+    title = 'Alcohol Impact and Alcohol time ' + alc_time.upper()
     selectedcolumn = 'LIGHT_CONDITION'
     df['ALCOHOLTIME'] = df['ALCOHOLTIME'].str.lower()
     df = df[df['ALCOHOLTIME'] == alc_time]
-    no_alc = df[selectedcolumn].value_counts().rename_axis('trends').reset_index(name='counts')
+    no_alc = df[selectedcolumn].value_counts().rename_axis(
+        'trends').reset_index(name='counts')
     counts = no_alc['counts'].tolist()
     trends = no_alc['trends'].tolist()
     show_graph(trends, counts, title, x_label)
@@ -133,12 +156,13 @@ def set_speedzone_chart():
     title = "Accidents per speed zone"
     x_label = "Speed Limits"
     speedzone = 'SPEED_ZONE'
-    year = 2013
     selectedcolumn = 'ACCIDENT_DATE'
-    no_alc = df[speedzone].value_counts().rename_axis('trends').reset_index(name='counts')
+    no_alc = df[speedzone].value_counts().rename_axis(
+        'trends').reset_index(name='counts')
     counts = no_alc['counts'].tolist()
     trends = no_alc['trends'].tolist()
     show_graph(trends, counts, title, x_label)
+
 
 ui.loadbtn.clicked.connect(load_dataset)
 ui.datesearchbtn.clicked.connect(set_date_between_dates)
